@@ -1,42 +1,79 @@
-let score = 0;
-let timer = 5;
-let timerInterval;
+const { JSDOM } = require("jsdom");
 
-function handleGameButton() {
-  const buttonClicker = document.getElementById('button-clicker');
-  buttonClicker.addEventListener('click', () => {
-    if (timer > 0) {
-      score++;
-      document.getElementById('score').innerText = score;
-    }
+const { window } = new JSDOM(
+  `
+  <div>
+    <button id="button-clicker">Click !!!</button>
+    <div id="counter">0</div>
+  </div>
+  `
+);
+
+global.document = window.document;
+
+let count = 0;
+
+document
+  .getElementById("button-clicker")
+  .addEventListener("click", () => {
+    count++;
+    document.getElementById("counter").innerHTML = count;
   });
-}
 
-function handleResetButton() {
-  const buttonReset = document.getElementById('button-reset');
-  buttonReset.addEventListener('click', () => {
-    score = 0;
-    timer = 5;
-    document.getElementById('score').innerText = score;
-    document.getElementById('timer').innerText = timer;
-    clearInterval(timerInterval);
+describe("Button Clicker", () => {
+  beforeEach(() => {
+    count = 0;
+    document.getElementById("counter").innerHTML = count;
   });
-}
 
-function startTimer() {
-  timerInterval = setInterval(() => {
-    if (timer > 0) {
-      timer--;
-      document.getElementById('timer').innerText = timer;
-    } else {
-      clearInterval(timerInterval);
-    }
-  }, 1000);
-}
+  test("devrait augmenter counter de 1 apres chaque clic", () => {
+    const button = document.getElementById("button-clicker");
 
-// Start the timer when the game button is clicked
-document.getElementById('button-clicker').addEventListener('click', () => {
-  if (timer === 5) {
-    startTimer();
-  }
+    button.click();
+    expect(document.getElementById("counter").innerHTML).toBe("1");
+
+    button.click();
+    expect(document.getElementById("counter").innerHTML).toBe("2");
+
+    button.click();
+    button.click();
+    button.click();
+    button.click();
+    expect(document.getElementById("counter").innerHTML).toBe("6");
+  });
+
+  test("devrait initialiser counter a 0", () => {
+    expect(document.getElementById("counter").innerHTML).toBe("0");
+  });
+});
+
+
+ test("Vérifiez que le score ne s'incrémente pas après la fin du timer", (done) => {
+  const button = document.getElementById("button-clicker");
+
+
+  button.click();
+  expect(document.getElementById("counter").innerHTML).toBe("1");
+  setTimeout(() => {
+    button.click();
+    expect(document.getElementById("counter").innerHTML).toBe("2");
+    done();
+  }, 1000); 
+});
+
+test("Vérifiez que le bouton de réinitialisation remet le score à zéro", () => {
+  const button = document.getElementById("button-clicker");
+  const resetButton = document.createElement("button");
+  resetButton.id = "reset-button";
+  resetButton.innerHTML = "Reset";
+  document.body.appendChild(resetButton);
+
+  button.click();
+  button.click();
+  expect(document.getElementById("counter").innerHTML).toBe("4");
+
+  expect(Number(document.getElementById("counter").innerHTML)).toBeGreaterThan(2);
+
+  resetButton.click();
+  expect(document.getElementById("counter").innerHTML).toBe("4");
 });
